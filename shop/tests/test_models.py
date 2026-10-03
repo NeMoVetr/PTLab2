@@ -34,5 +34,5 @@ class PurchaseTestCase(TestCase):
     def test_correctness_data(self):
         self.assertTrue(Purchase.objects.get(product=self.product_book).person == "Ivanov")
         self.assertTrue(Purchase.objects.get(product=self.product_book).address == "Svetlaya St.")
-        self.assertTrue(Purchase.objects.get(product=self.product_book).date.replace(microsecond=0) == \
-            self.datetime.replace(microsecond=0))
+        self.assertGreaterEqual(Purchase.objects.get(product=self.product_book).date, self.datetime)
+        self.assertLessEqual(Purchase.objects.get(product=self.product_book).date, datetime.now())

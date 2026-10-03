@@ -1,15 +1,24 @@
 - model: shop.product
   pk: 1
   fields:
-    name: Стол
-    price: 2000
+    name: Часы Seamaster
+    brand: Omega
+    description: Швейцарские механические часы в стальном корпусе.
+    price: 650000
+    stock: 3
 - model: shop.product
   pk: 2
   fields:
-    name: Стул
-    price: 1000
+    name: Сумка Lady Dior
+    brand: Dior
+    description: Кожаная сумка с фирменной стёжкой Cannage.
+    price: 580000
+    stock: 2
 - model: shop.product
   pk: 3
   fields:
-    name: Табурет
-    price: 500
+    name: Браслет Love
+    brand: Cartier
+    description: Браслет из жёлтого золота 750 пробы.
+    price: 920000
+    stock: 1

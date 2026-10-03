@@ -1,0 +1,10 @@
+[run]
+branch = True
+source = shop
+omit =
+    shop/tests/*
+    shop/migrations/*
+
+[report]
+show_missing = True
+fail_under = 95

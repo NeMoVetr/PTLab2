@@ -5,7 +5,7 @@
 {% block content %}
 <div class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3 mb-4">
     <div>
-        <p class="eyebrow mb-2">МАГАЗИН</p>
+        <p class="text-secondary mb-2">ПРЕДМЕТЫ РОСКОШИ</p>
         <h1 class="display-5 fw-bold mb-2">Каталог товаров</h1>
         <p class="text-secondary mb-0">Выберите товар — оформление займёт всего минуту.</p>
     </div>
@@ -16,14 +16,19 @@
 <div class="row g-4">
     {% for p in products %}
     <div class="col-sm-6 col-lg-4">
-        <article class="card product-card h-100 border-0 shadow-sm">
-            <div class="product-card-accent"></div>
+        <article class="card h-100 border-0 shadow-sm">
             <div class="card-body p-4 d-flex flex-column">
-                <div class="product-icon mb-4" aria-hidden="true">✦</div>
+                <p class="text-secondary small mb-2">{{ p.brand }}</p>
                 <h2 class="h5 fw-semibold">{{ p.name }}</h2>
+                <p class="text-secondary">{{ p.description }}</p>
+                <p class="small">В наличии: {{ p.stock }} шт.</p>
                 <div class="mt-auto pt-4 d-flex align-items-center justify-content-between gap-3">
-                    <span class="product-price">{{ p.price }} <small>₽</small></span>
+                    <span class="fs-4 fw-bold">{{ p.price }} <small>₽</small></span>
+                    {% if p.stock %}
                     <a class="btn btn-primary rounded-pill px-4" href="{% url 'buy' p.id %}">Купить</a>
+                    {% else %}
+                    <button class="btn btn-secondary" disabled>Нет в наличии</button>
+                    {% endif %}
                 </div>
             </div>
         </article>
@@ -31,8 +36,7 @@
     {% endfor %}
 </div>
 {% else %}
-<div class="empty-state text-center p-5 rounded-4">
-    <div class="product-icon mx-auto mb-3" aria-hidden="true">✦</div>
+<div class="bg-white text-center p-5 rounded-4">
     <h2 class="h5 fw-semibold">Пока нет товаров</h2>
     <p class="text-secondary mb-0">Загляните позже — каталог скоро пополнится.</p>
 </div>
