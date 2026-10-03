@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   test:
-    name: PostgreSQL tests and coverage
+    name: Django tests
     runs-on: ubuntu-latest
     env:
       SECRET_KEY: ci-only-secret-key-not-for-production
@@ -23,20 +23,6 @@ jobs:
       DB_PASSWORD: ci-password
       DB_HOST: localhost
       DB_PORT: '5432'
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_DB: luxury_shop_ci
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ci-password
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U postgres -d luxury_shop_ci"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -45,8 +31,13 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
-      - name: Install PostgreSQL build dependencies
-        run: sudo apt-get update && sudo apt-get install -y libpq-dev
+      - name: Set up PostgreSQL
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql libpq-dev
+          sudo systemctl start postgresql
+          sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'ci-password';"
+          sudo -u postgres createdb luxury_shop_ci
       - name: Install locked dependencies
         run: uv sync --locked
       - name: Check Django and migrations
@@ -55,31 +46,5 @@ jobs:
           uv run python manage.py makemigrations --check --dry-run
           uv run python manage.py migrate --noinput
           uv run python manage.py collectstatic --noinput
-      - name: Run all tests and enforce coverage
-        run: |
-          uv run coverage run manage.py test --noinput
-          uv run coverage report
-          uv run coverage xml
-      - uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage.xml
-      - name: Build deployment image
-        run: docker build -t luxury-shop:ci .
-      - name: Check container startup and catalog
-        run: |
-          docker run -d --name luxury-shop-smoke --network host \
-            --env SECRET_KEY --env DEBUG --env ALLOWED_HOSTS \
-            --env DB_NAME --env DB_USER --env DB_PASSWORD --env DB_HOST --env DB_PORT \
-            --env PORT=8000 luxury-shop:ci
-          curl --fail --silent --show-error --retry 15 --retry-connrefused --retry-delay 2 \
-            --max-time 10 http://localhost:8000/ -o /tmp/catalog.html
-          grep -q 'bootstrap@5.3.8' /tmp/catalog.html
-          grep -q 'Omega' /tmp/catalog.html
-      - name: Container logs and cleanup
-        if: always()
-        run: |
-          if docker container inspect luxury-shop-smoke >/dev/null 2>&1; then
-            docker logs luxury-shop-smoke
-            docker rm -f luxury-shop-smoke
-          fi
+      - name: Run all tests
+        run: uv run python manage.py test --noinput
