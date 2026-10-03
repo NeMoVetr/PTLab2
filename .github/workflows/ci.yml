@@ -66,3 +66,20 @@ jobs:
           path: coverage.xml
       - name: Build deployment image
         run: docker build -t luxury-shop:ci .
+      - name: Check container startup and catalog
+        run: |
+          docker run -d --name luxury-shop-smoke --network host \
+            --env SECRET_KEY --env DEBUG --env ALLOWED_HOSTS \
+            --env DB_NAME --env DB_USER --env DB_PASSWORD --env DB_HOST --env DB_PORT \
+            --env PORT=8000 luxury-shop:ci
+          curl --fail --silent --show-error --retry 15 --retry-connrefused --retry-delay 2 \
+            --max-time 10 http://localhost:8000/ -o /tmp/catalog.html
+          grep -q 'bootstrap@5.3.8' /tmp/catalog.html
+          grep -q 'Omega' /tmp/catalog.html
+      - name: Container logs and cleanup
+        if: always()
+        run: |
+          if docker container inspect luxury-shop-smoke >/dev/null 2>&1; then
+            docker logs luxury-shop-smoke
+            docker rm -f luxury-shop-smoke
+          fi
