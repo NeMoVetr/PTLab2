@@ -162,6 +162,7 @@ class StockTests(TestCase):
             self.assertEqual(method(reverse('buy', args=[999999])).status_code, 404)
 
     def test_inactive_product_is_hidden_and_cannot_be_bought(self):
+        self.product.name = 'OLD-WATCH-123'
         self.product.is_active = False
         self.product.save()
         self.assertNotContains(self.client.get(reverse('index')), self.product.name)
