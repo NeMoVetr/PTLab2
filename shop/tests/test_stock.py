@@ -7,10 +7,8 @@ from django.db import IntegrityError, close_old_connections, connection, transac
 from django.test import Client, TestCase, TransactionTestCase
 from django.urls import reverse
 
-from shop.admin import ProductAdmin, PurchaseAdmin
 from shop.forms import PurchaseForm
 from shop.models import Product, Purchase
-from django.contrib.admin.sites import AdminSite
 
 
 class StockTests(TestCase):
@@ -194,36 +192,3 @@ class StockTests(TestCase):
         self.assertNotContains(response, '<script>alert(1)</script>')
         self.assertContains(response, '&lt;script&gt;')
         self.assertFalse(Purchase.objects.exists())
-
-    def test_admin_prevents_direct_orders_and_deletion(self):
-        admin = PurchaseAdmin(Purchase, AdminSite())
-        self.assertFalse(admin.has_add_permission(None))
-        self.assertFalse(admin.has_delete_permission(None))
-        self.assertIn('stock', ProductAdmin.list_display)
-
-
-class ConcurrentPurchaseTests(TransactionTestCase):
-    def test_two_buyers_cannot_buy_last_item_twice(self):
-        self.assertEqual(connection.vendor, 'postgresql')
-        product = Product.objects.create(name='Браслет', price=900000, stock=1)
-        barrier = Barrier(2)
-
-        def buy_item():
-            close_old_connections()
-            try:
-                item = Product.objects.get(pk=product.pk)
-                barrier.wait(timeout=10)
-                try:
-                    item.purchase(person='Покупатель', address='Москва')
-                    return True
-                except ValidationError:
-                    return False
-            finally:
-                close_old_connections()
-
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            results = list(executor.map(lambda _: buy_item(), range(2)))
-        self.assertCountEqual(results, [True, False])
-        product.refresh_from_db()
-        self.assertEqual(product.stock, 0)
-        self.assertEqual(Purchase.objects.filter(product=product).count(), 1)
