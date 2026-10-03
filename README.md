@@ -9,9 +9,10 @@
 
 ## Локальный запуск
 
-Требуются Python 3.14+, uv и PostgreSQL. Создайте базу `prog_tech_lab_2`,
-скопируйте `.env.example` в `.env`, задайте свой секретный ключ и пароль БД.
-Переменные окружения процесса имеют приоритет над `.env`.
+Требуются Python 3.14+, uv и PostgreSQL. Создайте базу `prog_tech_lab_2`
+и заполните локальный `.env` ключами `SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS`,
+`DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST` и `DB_PORT`.
+Файл `.env` содержит локальные секреты и не сохраняется в Git.
 
 ```shell
 uv sync --locked
