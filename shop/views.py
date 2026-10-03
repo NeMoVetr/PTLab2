@@ -9,13 +9,13 @@ from .models import Product
 
 @require_http_methods(['GET'])
 def index(request):
-    products = Product.objects.order_by('name')
+    products = Product.objects.filter(is_active=True).order_by('name')
     return render(request, 'shop/index.html', {'products': products})
 
 
 @require_http_methods(['GET', 'POST'])
 def buy(request, product_id):
-    product = get_object_or_404(Product, pk=product_id)
+    product = get_object_or_404(Product, pk=product_id, is_active=True)
     form = PurchaseForm(request.POST if request.method == 'POST' else None,
                         product=product)
     if request.method == 'POST' and form.is_valid():

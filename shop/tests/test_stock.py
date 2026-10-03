@@ -16,7 +16,7 @@ from django.contrib.admin.sites import AdminSite
 class StockTests(TestCase):
     def setUp(self):
         Product.objects.all().delete()
-        self.product = Product.objects.create(name='Часы', brand='Omega', price=650000, stock=2)
+        self.product = Product.objects.create(name='Часы', brand='Patek Philippe', price=650000, stock=2)
         self.data = {'person': 'Иван', 'address': 'Москва, ул. Мира, 1'}
 
     def test_purchase_decrements_stock_and_records_order(self):
@@ -93,7 +93,7 @@ class StockTests(TestCase):
 
     def test_catalog_shows_luxury_information(self):
         response = self.client.get(reverse('index'))
-        self.assertContains(response, 'Omega')
+        self.assertContains(response, 'Patek Philippe')
         self.assertContains(response, '650000')
         self.assertContains(response, 'В наличии: 2')
         self.assertContains(response, 'bootstrap@5.3.8')
@@ -160,6 +160,13 @@ class StockTests(TestCase):
     def test_unknown_product_returns_404(self):
         for method in (self.client.get, self.client.post):
             self.assertEqual(method(reverse('buy', args=[999999])).status_code, 404)
+
+    def test_inactive_product_is_hidden_and_cannot_be_bought(self):
+        self.product.is_active = False
+        self.product.save()
+        self.assertNotContains(self.client.get(reverse('index')), self.product.name)
+        self.assertEqual(self.client.get(reverse('buy', args=[self.product.pk])).status_code, 404)
+        self.assertFalse(Purchase.objects.exists())
 
     def test_post_cannot_replace_url_product(self):
         other = Product.objects.create(name='Сумка', price=500000, stock=5)

@@ -9,6 +9,7 @@ class Product(models.Model):
     brand = models.CharField('Марка', max_length=100, blank=True)
     description = models.TextField('Описание', blank=True)
     stock = models.PositiveIntegerField('Остаток', default=0)
+    is_active = models.BooleanField('Показывать в каталоге', default=True)
 
     def __str__(self):
         return self.name
@@ -17,6 +18,8 @@ class Product(models.Model):
         """Создать покупку и списать одну единицу в общей транзакции."""
         with transaction.atomic():
             product = Product.objects.select_for_update().get(pk=self.pk)
+            if not product.is_active:
+                raise ValidationError('Эта модель больше не продаётся.')
             if product.stock == 0:
                 raise ValidationError('Товар закончился. Покупка невозможна.')
             purchase = Purchase(product=product, person=person, address=address)

@@ -5,8 +5,9 @@ from .models import Product, Purchase
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ['name', 'brand', 'price', 'stock']
+    list_display = ['name', 'brand', 'price', 'stock', 'is_active']
     search_fields = ['name', 'brand']
+    list_filter = ['brand', 'is_active']
 
 
 @admin.register(Purchase)
