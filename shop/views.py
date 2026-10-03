@@ -1,21 +1,33 @@
-from django.shortcuts import render
-from django.http import HttpResponse
-from django.views.generic.edit import CreateView
+from django.contrib import messages
+from django.core.exceptions import ValidationError
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_http_methods
 
-from .models import Product, Purchase
+from .forms import PurchaseForm
+from .models import Product
 
-# Create your views here.
+
+@require_http_methods(['GET'])
 def index(request):
-    products = Product.objects.all()
-    context = {'products': products}
-    return render(request, 'shop/index.html', context)
+    products = Product.objects.order_by('name')
+    return render(request, 'shop/index.html', {'products': products})
 
 
-class PurchaseCreate(CreateView):
-    model = Purchase
-    fields = ['product', 'person', 'address']
-
-    def form_valid(self, form):
-        self.object = form.save()
-        return HttpResponse(f'Спасибо за покупку, {self.object.person}!')
+@require_http_methods(['GET', 'POST'])
+def buy(request, product_id):
+    product = get_object_or_404(Product, pk=product_id)
+    form = PurchaseForm(request.POST if request.method == 'POST' else None,
+                        product=product)
+    if request.method == 'POST' and form.is_valid():
+        try:
+            purchase = form.save()
+        except ValidationError as error:
+            form.add_error(None, error)
+            product.refresh_from_db()
+        else:
+            messages.success(request, f'Спасибо за покупку, {purchase.person}!')
+            return redirect('index')
+    return render(request, 'shop/purchase_form.html', {
+        'form': form, 'product': product,
+    })
 
