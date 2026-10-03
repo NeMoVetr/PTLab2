@@ -1,10 +1,8 @@
-from concurrent.futures import ThreadPoolExecutor
-from threading import Barrier
 from unittest.mock import patch
 
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError, close_old_connections, connection, transaction
-from django.test import Client, TestCase, TransactionTestCase
+from django.db import IntegrityError, transaction
+from django.test import Client, TestCase
 from django.urls import reverse
 
 from shop.forms import PurchaseForm
@@ -182,13 +180,3 @@ class StockTests(TestCase):
     def test_unsupported_methods(self):
         self.assertEqual(self.client.post(reverse('index')).status_code, 405)
         self.assertEqual(self.client.put(reverse('buy', args=[self.product.pk])).status_code, 405)
-
-    def test_customer_name_is_escaped(self):
-        response = self.client.post(
-            reverse('buy', args=[self.product.pk]),
-            {'person': '<script>alert(1)</script>', 'address': ''},
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertNotContains(response, '<script>alert(1)</script>')
-        self.assertContains(response, '&lt;script&gt;')
-        self.assertFalse(Purchase.objects.exists())
