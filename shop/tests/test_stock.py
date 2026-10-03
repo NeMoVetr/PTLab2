@@ -186,10 +186,14 @@ class StockTests(TestCase):
         self.assertEqual(self.client.put(reverse('buy', args=[self.product.pk])).status_code, 405)
 
     def test_customer_name_is_escaped(self):
-        response = self.client.post(reverse('buy', args=[self.product.pk]),
-                                    {**self.data, 'person': '<script>alert(1)</script>'}, follow=True)
+        response = self.client.post(
+            reverse('buy', args=[self.product.pk]),
+            {'person': '<script>alert(1)</script>', 'address': ''},
+        )
+        self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, '<script>alert(1)</script>')
         self.assertContains(response, '&lt;script&gt;')
+        self.assertFalse(Purchase.objects.exists())
 
     def test_admin_prevents_direct_orders_and_deletion(self):
         admin = PurchaseAdmin(Purchase, AdminSite())
