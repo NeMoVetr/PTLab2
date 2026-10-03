@@ -1,4 +1,3 @@
-from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
@@ -20,12 +19,11 @@ def buy(request, product_id):
                         product=product)
     if request.method == 'POST' and form.is_valid():
         try:
-            purchase = form.save()
+            form.save()
         except ValidationError as error:
             form.add_error(None, error)
             product.refresh_from_db()
         else:
-            messages.success(request, f'Спасибо за покупку, {purchase.person}!')
             return redirect('index')
     return render(request, 'shop/purchase_form.html', {
         'form': form, 'product': product,

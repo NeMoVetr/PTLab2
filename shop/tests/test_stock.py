@@ -119,7 +119,7 @@ class StockTests(TestCase):
     def test_post_purchase_redirect_and_refresh(self):
         response = self.client.post(reverse('buy', args=[self.product.pk]), self.data, follow=True)
         self.assertRedirects(response, reverse('index'))
-        self.assertContains(response, 'Спасибо за покупку, Иван!')
+        self.assertNotContains(response, 'Спасибо за покупку')
         self.client.get(reverse('index'))
         self.assertEqual(Purchase.objects.count(), 1)
         self.product.refresh_from_db()
