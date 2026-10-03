@@ -1,28 +1,31 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta name="viewport" content="width=device-width" />
-    <title>Покупка</title>
-</head>
-<body>
-    <div>
-        <h3>Покупка</h3>
-        <form method="post">{% csrf_token %}
-            <input type="hidden" value="{{ view.kwargs.product_id }}" name="product" />
-            <table>
-                <tr>
-                    <td><p>Введите свое имя </p></td>
-                    <td><input type="text" name="person" /> </td>
-                </tr>
-                <tr>
-                    <td><p>Введите адрес доставки:</p></td>
-                    <td>
-                        <input type="text" name="address" />
-                    </td>
-                </tr>
-                <tr><td><input type="submit" value="Отправить" /> </td><td></td></tr>
-            </table>
-        </form>
+{% extends 'shop/base.html' %}
+
+{% block title %}Оформление покупки{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <a class="back-link d-inline-flex align-items-center gap-2 mb-4" href="{% url 'index' %}">← Вернуться в каталог</a>
+        <section class="card checkout-card border-0 shadow-sm">
+            <div class="card-body p-4 p-md-5">
+                <p class="eyebrow mb-2">ЗАКАЗ</p>
+                <h1 class="h2 fw-bold mb-2">Оформление покупки</h1>
+                <p class="text-secondary mb-4">Оставьте контактные данные для доставки.</p>
+                <form method="post" class="vstack gap-3">
+                    {% csrf_token %}
+                    <input type="hidden" value="{{ view.kwargs.product_id }}" name="product">
+                    <div>
+                        <label for="person" class="form-label fw-medium">Ваше имя</label>
+                        <input id="person" class="form-control form-control-lg" type="text" name="person" placeholder="Как к вам обращаться?" required>
+                    </div>
+                    <div>
+                        <label for="address" class="form-label fw-medium">Адрес доставки</label>
+                        <input id="address" class="form-control form-control-lg" type="text" name="address" placeholder="Город, улица, дом" required>
+                    </div>
+                    <button class="btn btn-primary btn-lg rounded-pill mt-2" type="submit">Подтвердить заказ</button>
+                </form>
+            </div>
+        </section>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

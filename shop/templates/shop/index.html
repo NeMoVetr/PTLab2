@@ -1,26 +1,40 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta name="viewport" content="width=device-width" />
-    <title>Товары</title>
-</head>
-<body>
+{% extends 'shop/base.html' %}
+
+{% block title %}Каталог товаров{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3 mb-4">
     <div>
-        <h3>Список</h3>
-        <table>
-            <tr>
-                <td><p>Наименование</p></td>
-                <td><p>Цена</p></td>
-                <td></td>
-            </tr>
-            {% for p in products %}
-                <tr>
-                    <td><p>{{ p.name }}</p></td>
-                    <td><p>{{ p.price }}</p></td>
-                    <td><p><a href="/buy/{{ p.id }}">Купить</a></p></td>
-                </tr>
-            {% endfor %}
-        </table>
+        <p class="eyebrow mb-2">МАГАЗИН</p>
+        <h1 class="display-5 fw-bold mb-2">Каталог товаров</h1>
+        <p class="text-secondary mb-0">Выберите товар — оформление займёт всего минуту.</p>
     </div>
-</body>
-</html>
+    <span class="badge rounded-pill text-bg-light border px-3 py-2">{{ products|length }} товаров</span>
+</div>
+
+{% if products %}
+<div class="row g-4">
+    {% for p in products %}
+    <div class="col-sm-6 col-lg-4">
+        <article class="card product-card h-100 border-0 shadow-sm">
+            <div class="product-card-accent"></div>
+            <div class="card-body p-4 d-flex flex-column">
+                <div class="product-icon mb-4" aria-hidden="true">✦</div>
+                <h2 class="h5 fw-semibold">{{ p.name }}</h2>
+                <div class="mt-auto pt-4 d-flex align-items-center justify-content-between gap-3">
+                    <span class="product-price">{{ p.price }} <small>₽</small></span>
+                    <a class="btn btn-primary rounded-pill px-4" href="{% url 'buy' p.id %}">Купить</a>
+                </div>
+            </div>
+        </article>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state text-center p-5 rounded-4">
+    <div class="product-icon mx-auto mb-3" aria-hidden="true">✦</div>
+    <h2 class="h5 fw-semibold">Пока нет товаров</h2>
+    <p class="text-secondary mb-0">Загляните позже — каталог скоро пополнится.</p>
+</div>
+{% endif %}
+{% endblock %}
