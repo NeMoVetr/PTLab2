@@ -1,0 +1,68 @@
+name: Django CI
+
+on:
+  push:
+    branches: [master, 'feature/**']
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: PostgreSQL tests and coverage
+    runs-on: ubuntu-latest
+    env:
+      SECRET_KEY: ci-only-secret-key-not-for-production
+      DEBUG: 'False'
+      ALLOWED_HOSTS: localhost,127.0.0.1,testserver
+      DB_NAME: luxury_shop_ci
+      DB_USER: postgres
+      DB_PASSWORD: ci-password
+      DB_HOST: localhost
+      DB_PORT: '5432'
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: luxury_shop_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d luxury_shop_ci"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Install PostgreSQL build dependencies
+        run: sudo apt-get update && sudo apt-get install -y libpq-dev
+      - name: Install locked dependencies
+        run: uv sync --locked
+      - name: Check Django and migrations
+        run: |
+          uv run python manage.py check
+          uv run python manage.py makemigrations --check --dry-run
+          uv run python manage.py migrate --noinput
+          uv run python manage.py collectstatic --noinput
+      - name: Run all tests and enforce coverage
+        run: |
+          uv run coverage run manage.py test --noinput
+          uv run coverage report
+          uv run coverage xml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+      - name: Build deployment image
+        run: docker build -t luxury-shop:ci .
